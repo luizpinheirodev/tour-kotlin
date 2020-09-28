@@ -43,7 +43,7 @@ class PromocaoServiceImpl(val promocaoRepository: PromocaoRepository) : Promocao
     }
 
     override fun getAllByPrecoMenorQue9000(): List<Promocao> {
-        return this.promocaoRepository.findByPrecoMenorQue()
+        return this.promocaoRepository.findByPrecoMenorQue(9000.0)
     }
 
 }
