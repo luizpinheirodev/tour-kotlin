@@ -1,42 +1,49 @@
 package com.kotlin.tour.service.impl
 
 import com.kotlin.tour.model.Promocao
+import com.kotlin.tour.repository.PromocaoRepository
 import com.kotlin.tour.service.PromocaoService
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
-import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class PromocaoServiceImpl : PromocaoService {
-    companion object {
-        val initialPromocoes = arrayOf(
-                Promocao(1, "Maravilhosa Viagem a Cancun", "Cancun", true, 7, 4200.99),
-                Promocao(2, "Viagem radical com rapel e escalada", "Nova Zelandia", false, 12, 12000.0),
-                Promocao(3, "Viagem espiritual", "Thailandia", false, 17, 15000.0),
-                Promocao(4, "Viagem com a familia", "Gramado", false, 5, 3500.33)
-        )
-    }
+class PromocaoServiceImpl(val promocaoRepository: PromocaoRepository) : PromocaoService {
 
-    var promocoes = ConcurrentHashMap<Long, Promocao>(initialPromocoes.associateBy(Promocao::id))
     override fun create(promocao: Promocao) {
-        promocoes[promocao.id] = promocao
+        this.promocaoRepository.save(promocao)
     }
 
     override fun getById(id: Long): Promocao? {
-        return promocoes[id]
+        return this.promocaoRepository.findById(id).orElseGet(null)
     }
 
     override fun delete(id: Long) {
-        promocoes.remove(id)
+        this.promocaoRepository.deleteById(id)
     }
 
     override fun update(id: Long, promocao: Promocao) {
-        delete(id)
         create(promocao)
     }
 
     override fun searchByLocal(local: String): List<Promocao> =
-            promocoes.filter {
-                it.value.local.contains(local, true)
-            }.map(Map.Entry<Long, Promocao>::value).toList()
+            listOf()
+
+    override fun getAll(start: Int, size: Int): List<Promocao> {
+        val pages = PageRequest.of(start, size, Sort.by("local").ascending())
+        return this.promocaoRepository.findAll(pages).toList()
+    }
+
+    override fun count(): Long {
+        return this.promocaoRepository.count()
+    }
+
+    override fun getAllSortedByLocal(): List<Promocao> {
+        return this.promocaoRepository.findAll(Sort.by("local").descending()).toList()
+    }
+
+    override fun getAllByPrecoMenorQue9000(): List<Promocao> {
+        return this.promocaoRepository.findByPrecoMenorQue()
+    }
 
 }

@@ -17,6 +17,9 @@ class PromocaoController {
     @Autowired
     lateinit var promocaoService: PromocaoService
 
+    @GetMapping("/menorQue9000")
+    fun getAllMenores() = this.promocaoService.getAllByPrecoMenorQue9000()
+
     @GetMapping("/{id}")
     fun getById(@PathVariable id: Long): ResponseEntity<Any> {
 //        var promocao = this.promocaoService.getById(id) ?: throw PromocaoNotFoundException("Promoção ${id} não localizada") // Evitar usar contoller advice para exceção de negocio
@@ -57,13 +60,19 @@ class PromocaoController {
     }
 
     @GetMapping()
-    fun getAll(@RequestParam(required = false, defaultValue = "") localFilter: String): ResponseEntity<List<Promocao>> {
-        var status = HttpStatus.OK
-        val listPromocoes = this.promocaoService.searchByLocal(localFilter)
-        if (listPromocoes.size == 0) {
-            status = HttpStatus.NOT_FOUND
-        }
+    fun getAll(@RequestParam(required = false, defaultValue = "0") start: Int,
+               @RequestParam(required = false, defaultValue = "3") size: Int)
+            : ResponseEntity<List<Promocao>> {
+        val listPromocoes = this.promocaoService.getAll(start, size)
+        var status = if (listPromocoes.size == 0) HttpStatus.NOT_FOUND else HttpStatus.OK
         return ResponseEntity(listPromocoes, status)
     }
+
+    @GetMapping("/count")
+    fun count(): ResponseEntity<Map<String, Long>> =
+            ResponseEntity.ok().body(mapOf("count" to this.promocaoService.count()))
+
+    @GetMapping("/ordenados")
+    fun ordenados() = this.promocaoService.getAllSortedByLocal()
 
 }
